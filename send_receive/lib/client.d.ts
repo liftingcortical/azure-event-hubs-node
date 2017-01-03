@@ -6,6 +6,7 @@ import Promise = require('bluebird');
 import ConnectionConfig = require('./config');
 import Receiver = require('./receiver');
 import Sender = require('./sender');
+import Policy = require('~amqp10/lib/policies/policy');
 
 declare namespace EventHubClient {
     interface ReceiverOptions {
@@ -17,7 +18,7 @@ declare namespace EventHubClient {
 }
 
 declare class EventHubClient {
-    constructor(config: ConnectionConfig);
+    constructor(config: ConnectionConfig, customPolicy?: Policy);
     open(): Promise<void>;
     close(): Promise<void>;
     getPartitionIds(): Promise<EventHubClient.PartitionId[]>;

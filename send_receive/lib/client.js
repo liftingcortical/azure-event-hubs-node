@@ -5,6 +5,7 @@
 
 var uuid = require('uuid');
 var amqp10 = require('amqp10');
+var Policy = amqp10.Policy.PolicyBase;
 var Promise = require('bluebird');
 var Receiver = require('./receiver.js');
 var Sender = require('./sender.js');
@@ -16,9 +17,10 @@ var MessagingEntityNotFoundError = require('./errors.js').MessagingEntityNotFoun
  * Instantiate a client pointing to the Event Hub given by this configuration.
  *
  * @param {ConnectionConfig} config
+ * @param {Policy} customPolicy
  * @constructor
  */
-function EventHubClient(config) {
+function EventHubClient(config, customPolicy) {
   var makeError = function (prop) {
     return new ArgumentError('config is missing property ' + prop);
   };
@@ -27,36 +29,45 @@ function EventHubClient(config) {
     if (!config[prop]) throw makeError(prop);
   });
 
+  if (!customPolicy) {
+      customPolicy = new Policy();
+  } else if (!customPolicy instanceof Policy) {
+      throw new ArgumentError('Provided customPolicy argument is not an amqp10 Policy');
+  }
+
   this._config = config;
-  this._amqp = new amqp10.Client(amqp10.Policy.merge({
-    senderLink: {
-      attach: {
-        maxMessageSize: 262144
-      }
-    },
-    receiverLink: {
-      attach: {
-        maxMessageSize: 0 // means infinity
+
+  var defaultPolicy = amqp10.Policy.merge({
+      senderLink: {
+          attach: {
+              maxMessageSize: 262144
+          }
       },
-      decoder: function(body) {
-        var bodyStr = null;
+      receiverLink: {
+          attach: {
+              maxMessageSize: 0 // means infinity
+          },
+          decoder: function(body) {
+              var bodyStr = null;
 
-        if (body instanceof Buffer) {
-          bodyStr = body.toString();
-        } else if (typeof body === 'string') {
-          bodyStr = body;
-        } else {
-          return body;
-        }
+              if (body instanceof Buffer) {
+                  bodyStr = body.toString();
+              } else if (typeof body === 'string') {
+                  bodyStr = body;
+              } else {
+                  return body;
+              }
 
-        try {
-          return JSON.parse(bodyStr);
-        } catch (e) {
-          return body;
-        }
+              try {
+                  return JSON.parse(bodyStr);
+              } catch (e) {
+                  return body;
+              }
+          }
       }
-    }
-  }, amqp10.Policy.EventHub));
+  }, amqp10.Policy.EventHub);
+
+  this._amqp = new amqp10.Client(amqp10.Policy.merge(customPolicy, defaultPolicy));
   this._connectPromise = null;
 }
 
