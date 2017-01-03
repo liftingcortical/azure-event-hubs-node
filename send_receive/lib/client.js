@@ -30,7 +30,7 @@ function EventHubClient(config, customPolicy) {
   });
 
   if (!customPolicy) {
-      customPolicy = new Policy();
+      customPolicy = {};
   } else if (!customPolicy instanceof Policy) {
       throw new ArgumentError('Provided customPolicy argument is not an amqp10 Policy');
   }
