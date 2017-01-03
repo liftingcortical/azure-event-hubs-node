@@ -77,9 +77,10 @@ function EventHubClient(config, customPolicy) {
  * @method fromConnectionString
  * @param {string} connectionString - Connection string of the form 'Endpoint=sb://my-servicebus-namespace.servicebus.windows.net/;SharedAccessKeyName=my-SA-name;SharedAccessKey=my-SA-key'
  * @param {string} path - Event Hub path of the form 'my-event-hub-name'
+ * @param {Policy} customPolicy
  * @returns {EventHubClient}
  */
-EventHubClient.fromConnectionString = function (connectionString, path) {
+EventHubClient.fromConnectionString = function (connectionString, path, customPolicy) {
   if (!connectionString) {
     throw new ArgumentError('Missing argument connectionString');
   }
@@ -89,7 +90,7 @@ EventHubClient.fromConnectionString = function (connectionString, path) {
     throw new ArgumentError('Connection string doesn\'t have EntityPath, or missing argument path');
   }
 
-  return new EventHubClient(config);
+  return new EventHubClient(config, customPolicy);
 };
 
 /**
