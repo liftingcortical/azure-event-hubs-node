@@ -12,11 +12,13 @@ declare namespace EventHubReceiver {
     }
 
     type CreditPolicy = () => void;
-    const creditPolicies: {
+
+    /* tslint:disable-next-line no-unused-variable */
+    let creditPolicies: {
         RefreshAtHalf: CreditPolicy;
         RefreshAtEmpty: CreditPolicy;
-        RefreshSettled(treshold: number): CreditPolicy;
         DoNotRefresh: CreditPolicy;
+        RefreshSettled: (threshold: number) => CreditPolicy;
     };
 
     interface ReceiverFlowControlPolicy {
